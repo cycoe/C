@@ -14,26 +14,6 @@ struct LinkedNode {
     struct LinkedNode * next;
 };
 
-int getIndex(int * nums, int low, int high) {
-    int tmp = nums[high];
-    while (low < high) {
-        while (low < high && nums[low] <= tmp) low++;
-        nums[high] = nums[low];
-        while (low < high && nums[high] >= tmp) high--;
-        nums[low] = nums[high];
-    }
-    nums[low] = tmp;
-    return low;
-}
-
-void quickSort(int * nums, int low, int high) {
-    if (low < high) {
-        int index = getIndex(nums, low, high);
-        quickSort(nums, 0, index - 1);
-        quickSort(nums, index + 1, high);
-    }
-}
-
 void merge(int * nums, int * tmp, int leftStart, int rightStart, int rightEnd) {
     int cur = leftStart;
     int leftEnd = rightStart - 1;
