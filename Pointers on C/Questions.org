@@ -64,3 +64,76 @@ Caution about the side effect!
 #+end_src
 #+RESULTS:
 : 2100 is not a leap year!
+*** 9
+**** Search the first specific charactor in a string
+#+begin_src C
+  #include <stdio.h>
+  #include <string.h>
+
+  int main(int argc, char *argv[])
+  {
+    char string[20] = "Hello there.";
+    char *search = strchr(string, 'h');
+    if (search)
+      printf("The index of first 'h' is %d\n", search - string);
+    return 0;
+  }
+#+end_src
+#+RESULTS:
+: The index of first 'h' is 7
+**** Search the first charactor of a group in a string 
+#+begin_src C
+  #include <stdio.h>
+  #include <string.h>
+
+  int main(int argc, char *argv[])
+  {
+    char string[20] = "Hello there.";
+    char *search = strpbrk(string, "aeiou");
+    if (search)
+      printf("The index of first 'aeiou' is %d\n", search - string);
+    return 0;
+  }
+#+end_src
+#+RESULTS:
+: The index of first 'aeiou' is 1
+**** Search a substring
+#+begin_src C
+  #include <stdio.h>
+  #include <string.h>
+
+  int main(int argc, char *argv[])
+  {
+    char string[20] = "Hello there.";
+    char *search = strstr(string, "there");
+    if (search)
+      printf("The index of substring 'there' is %d\n", search - string);
+    return 0;
+  }
+#+end_src
+#+RESULTS:
+: The index of substring 'there' is 6
+*** 10
+#+begin_src C
+  #include <stdio.h>
+
+  struct {
+    // 此处使用 int 会出问题，应使用无符号类型
+    int a: 2;
+    unsigned b: 2;
+  } x;
+
+  int main(int argc, char *argv[])
+  {
+    x.a = 1;
+    x.a += 1;
+    printf("%p\n", (int*) x.a);
+    x.b = 1;
+    x.b += 1;
+    printf("%p\n", (int*) x.b);
+    return 0;
+  }
+#+end_src
+#+RESULTS:
+| 0xfffffffffffffffe |
+|                0x2 |
