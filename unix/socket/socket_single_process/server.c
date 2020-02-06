@@ -6,6 +6,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include "wrap.h"
+
 #define SERVER_IP 127.0.0.1
 #define SERVER_PORT 6666
 
@@ -23,10 +25,7 @@ int main(int argc, char *argv[])
   int n;
 
   /*  初始化一个服务器 socket 文件描述符 */
-  if ((lfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-    perror("socket error");
-    exit(1);
-  }
+  lfd = socket_(AF_INET, SOCK_STREAM, 0);
 
   /* 完成 server 的 socket 结构体 */
   server_addr.sin_family = AF_INET;
@@ -39,13 +38,10 @@ int main(int argc, char *argv[])
    * 由于历史遗留问题，此处的 server_addr 要强转为 struct sockaddr 类型指针
    * 类似的函数有 accept, connect
    */
-  if (bind(lfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) {
-    perror("bind error");
-    exit(1);
-  }
+  bind_(lfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
 
   /* 设定允许同时连接的客户端最大数量 */
-  listen(lfd, 128);
+  listen_(lfd, 128);
 
   /* 阻塞等待客户端连接
    * client_addr 结构体返回客户端信息
@@ -53,29 +49,34 @@ int main(int argc, char *argv[])
    * 并且 accept 函数返回一个新的文件描述符指向与客户端配对的 socket 文件
    */
   client_sock_len = sizeof(client_addr);
-  cfd = accept(lfd, (struct sockaddr *)&client_addr, &client_sock_len);
+  cfd = accept_(lfd, (struct sockaddr *)&client_addr, &client_sock_len);
   printf("IP: %s, port: %d\n",
          inet_ntop(AF_INET, &client_addr.sin_addr.s_addr, buff, sizeof(buff)),
          ntohs(client_addr.sin_port));
 
-  while (1) {
-    /* 从 socket 文件中读取最多 sizeof(buff) 个字符，实际读取个数是 n */
-    n = read(cfd, buff, sizeof(buff));
-    /* 转换为大写 */
+  /* 从 socket 文件中读取最多 sizeof(buff) 个字节，实际读取个数是 n 个字节 */
+  while ((n = read_(cfd, buff, sizeof(buff))) != 0) {
+    /* 转换为大写
+     * 此处是 n 是因为刚好一个字符是一个字节
+     * 否则应该是 i < n / sizeof(type)
+     */
     for (int i = 0; i < n; i++) {
       buff[i] = toupper(buff[i]);
     }
     /*
-     * 将 buff 中的 n 个字符写入文件中
+     * 将 buff 中的 n 个字节写入文件中
      * 此处千万不能写作 sizeof(buff)，否则后面的垃圾数据也会进入管道
      * read 和 write 并不对字符串进行处理，而是按字节读取
      */
-    write(cfd, buff, n);
+    write_(cfd, buff, n);
   }
 
+  printf("IP: %s is disconnected!\n",
+         inet_ntop(AF_INET, &client_addr.sin_addr.s_addr, buff, sizeof(buff)));
+
   /* 关闭文件 */
-  close(lfd);
-  close(cfd);
+  close_(lfd);
+  close_(cfd);
 
   return 0;
 }
